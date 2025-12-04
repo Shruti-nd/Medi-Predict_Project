@@ -3,7 +3,7 @@
   "name": "medi-predict",
   "functions": {
     "api/*.js": {
-      "runtime": "nodejs20.x",
+      "runtime": "nodejs20",
       "memory": 1024
     }
   },
