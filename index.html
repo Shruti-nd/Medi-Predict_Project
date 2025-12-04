@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediPredict API | Predictive Healthcare Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .font-mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      /* Custom Scrollbar */
+      .custom-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb:hover {
+        background: #475569;
+      }
+
+      /* Animations */
+      .fade-in {
+        animation: fadeIn 0.4s ease-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Code block styling */
+      .code-block {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        overflow-x: auto;
+        border: 1px solid #334155;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+      }
+      .key {
+        color: #93c5fd;
+      }
+      .string {
+        color: #a5f3fc;
+      }
+      .number {
+        color: #fca5a5;
+      }
+      .comment {
+        color: #64748b;
+        font-style: italic;
+      }
+      .endpoint-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+      }
+      .badge-post {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .badge-get {
+        background: #d1fae5;
+        color: #047857;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden"
+  >
+    <nav
+      class="bg-[#0B1120] border-b border-slate-800 h-16 flex items-center justify-between px-6 lg:px-12 flex-none z-50"
+    >
+      <div
+        class="flex items-center gap-3 cursor-pointer"
+        onclick="ui.toggleView('overview')"
+      >
+        <div
+          class="bg-blue-600 h-8 w-8 rounded flex items-center justify-center shadow-lg shadow-blue-500/30"
+        >
+          <svg
+            class="w-5 h-5 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            ></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-white font-bold text-lg tracking-tight">
+            MediPredict
+          </h1>
+          <p class="text-[10px] text-blue-400 font-mono -mt-1">v2.5.0-beta</p>
+        </div>
+      </div>
+
+      <div class="hidden md:flex items-center gap-2 text-sm font-medium">
+        <button
+          id="nav-overview"
+          onclick="ui.toggleView('overview')"
+          class="nav-btn px-4 py-2 rounded transition text-white bg-slate-800 border border-slate-700"
+        >
+          Overview
+        </button>
+        <button
+          id="nav-simulator"
+          onclick="ui.toggleView('simulator')"
+          class="nav-btn px-4 py-2 rounded transition text-slate-400 hover:text-white"
+        >
+          Simulator
+        </button>
+        <button
+          id="nav-docs"
+          onclick="ui.toggleView('docs')"
+          class="nav-btn px-4 py-2 rounded transition text-slate-400 hover:text-white"
+        >
+          Documentation
+        </button>
+        <a href="#" class="px-4 py-2 text-slate-400 hover:text-white transition"
+          >Analytics</a
+        >
+      </div>
+      <div class="flex items-center gap-3 text-sm font-medium">
+        <span
+          id="currentUserDisplay"
+          class="hidden text-xs font-mono text-blue-300"
+        ></span>
+        <button
+          id="openAuthModal"
+          class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition shadow-lg shadow-blue-500/30"
+        >
+          Sign In
+        </button>
+        <button
+          id="signOutButton"
+          class="hidden px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-white transition"
+        >
+          Sign Out
+        </button>
+      </div>
+    </nav>
+
+    <div
+      id="landingView"
+      class="view-section flex-1 overflow-y-auto bg-[#0B1120] relative fade-in"
+    >
+      <div
+        class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none"
+      ></div>
+
+      <div
+        class="relative z-10 max-w-6xl mx-auto px-6 py-20 flex flex-col items-center text-center"
+      >
+        <div
+          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/30 border border-blue-800 text-blue-300 text-xs font-medium mb-8"
+        >
+          <span class="relative flex h-2 w-2">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"
+            ></span>
+            <span
+              class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"
+            ></span>
+          </span>
+          v2.5 Now Live
+        </div>
+
+        <h1
+          class="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-tight mb-6 drop-shadow-2xl"
+        >
+          Predictive Intelligence for <br />
+          <span
+            class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400"
+            >Modern Healthcare</span
+          >
+        </h1>
+        <p class="text-lg text-slate-400 max-w-2xl mb-10 leading-relaxed">
+          An enterprise-grade API designed for hospital systems. Inject patient
+          data or medical imagery to receive real-time risk assessments for 7
+          major pathologies.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 mb-20">
+          <button
+            onclick="ui.toggleView('simulator')"
+            class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-lg font-semibold flex items-center gap-2 transition shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:scale-105 transform duration-200"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+              ></path>
+            </svg>
+            Test API Simulator
+          </button>
+          <button
+            onclick="ui.toggleView('docs')"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-8 py-3.5 rounded-lg font-medium flex items-center gap-2 transition hover:text-white"
+          >
+            <span class="font-mono text-blue-400">&lt;/&gt;</span> View
+            Integration Docs
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
+          <div
+            class="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 shadow-xl hover:bg-white/10 transition"
+          >
+            <div
+              class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 text-blue-400"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 01-2 2v4a2 2 0 012 2h14a2 2 0 012-2v-4a2 2 0 01-2-2m-2-4h.01M17 16h.01"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="font-bold text-white mb-2">Seamless Integration</h3>
+            <p class="text-sm text-slate-400">
+              RESTful endpoints accepting JSON & DICOM standards.
+            </p>
+          </div>
+          <div
+            class="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 shadow-xl hover:bg-white/10 transition"
+          >
+            <div
+              class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-4 text-emerald-400"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="font-bold text-white mb-2">HIPAA Compliant</h3>
+            <p class="text-sm text-slate-400">
+              Stateless processing ensures PII is never stored.
+            </p>
+          </div>
+          <div
+            class="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 shadow-xl hover:bg-white/10 transition"
+          >
+            <div
+              class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 text-purple-400"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="font-bold text-white mb-2">7-Disease Suite</h3>
+            <p class="text-sm text-slate-400">
+              Diabetes, Cardiovascular, Pneumonia, Retinopathy, etc.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="simulatorView"
+      class="view-section flex-1 flex flex-col md:flex-row overflow-hidden hidden fade-in"
+    >
+      <aside
+        class="w-full md:w-1/3 lg:w-1/4 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 z-10"
+      >
+        <div class="p-6 flex-none">
+          <h2
+            class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4"
+          >
+            Live Console
+          </h2>
+          <div class="bg-slate-800/50 rounded border border-slate-700 p-3 mb-4">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-mono text-blue-400">STATUS</span>
+              <span
+                id="statusIndicator"
+                class="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+              ></span>
+            </div>
+            <div
+              class="font-mono text-xs text-slate-300 truncate"
+              id="userIdDisplay"
+            >
+              Connecting...
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col min-h-0 px-6 pb-6">
+          <div
+            class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between"
+          >
+            <span>Transaction Log</span>
+            <span class="text-slate-600">/var/log/api</span>
+          </div>
+          <div
+            class="flex-1 bg-black rounded border border-slate-800 p-3 font-mono text-[11px] overflow-y-auto custom-scroll"
+            id="historyContainer"
+          >
+            <p class="text-blue-500">// INIT SEQUENCE STARTED</p>
+            <p class="text-slate-600 italic mt-1">Waiting for inputs...</p>
+          </div>
+        </div>
+      </aside>
+      <main class="flex-1 overflow-y-auto bg-slate-50 relative">
+        <div class="max-w-4xl mx-auto p-6 md:p-10 pb-20">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-slate-900">
+                New Diagnosis Request
+              </h2>
+              <p class="text-sm text-slate-500">
+                Enter clinical parameters to trigger prediction engine.
+              </p>
+            </div>
+            <button
+              onclick="document.getElementById('reportForm').reset()"
+              class="text-xs font-medium text-slate-400 hover:text-blue-600 transition"
+            >
+              Reset Form
+            </button>
+          </div>
+          <form
+            id="reportForm"
+            class="space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm"
+          >
+            <div>
+              <h3
+                class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3"
+              >
+                01. Demographics
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1"
+                    >Patient ID</label
+                  ><input
+                    type="text"
+                    id="patientId"
+                    required
+                    placeholder="e.g. PT-8842"
+                    class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1"
+                    >Age</label
+                  ><input
+                    type="number"
+                    id="patientAge"
+                    placeholder="45"
+                    class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1"
+                    >Sex</label
+                  ><select
+                    id="patientSex"
+                    class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <hr class="border-slate-100" />
+            <div>
+              <h3
+                class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3"
+              >
+                02. Clinical Vitals
+              </h3>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1"
+                    >Glucose (mg/dL)</label
+                  ><input
+                    type="number"
+                    id="glucose"
+                    placeholder="120"
+                    class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2.5 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1"
+                    >BP (mmHg)</label
+                  ><input
+                    type="text"
+                    id="bp"
+                    placeholder="120/80"
+                    class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2.5 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1"
+                    >BMI</label
+                  ><input
+                    type="number"
+                    id="bmi"
+                    placeholder="24.5"
+                    step="0.1"
+                    class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2.5 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1"
+                    >Heart Rate</label
+                  ><input
+                    type="number"
+                    id="hr"
+                    placeholder="72"
+                    class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2.5 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+            <hr class="border-slate-100" />
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="lg:col-span-1">
+                <h3
+                  class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3"
+                >
+                  03. Diagnostic Imaging
+                </h3>
+                <label
+                  class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-400 transition group"
+                >
+                  <div
+                    class="flex flex-col items-center justify-center pt-5 pb-6"
+                  >
+                    <svg
+                      class="w-8 h-8 mb-2 text-slate-400 group-hover:text-blue-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      ></path>
+                    </svg>
+                    <p class="text-[10px] text-slate-500">
+                      Upload X-Ray/MRI (JPG/PNG)
+                    </p>
+                  </div>
+                  <input
+                    id="reportFile"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                  />
+                </label>
+                <p
+                  id="fileNameDisplay"
+                  class="text-xs text-blue-600 mt-2 font-mono h-4 truncate"
+                ></p>
+              </div>
+              <div class="lg:col-span-2">
+                <h3
+                  class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3"
+                >
+                  04. Clinical Notes / JSON
+                </h3>
+                <textarea
+                  id="clinicalNotes"
+                  rows="4"
+                  class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded p-3 font-mono focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Paste symptoms, history, or lab results text..."
+                ></textarea>
+              </div>
+            </div>
+            <div class="pt-2">
+              <button
+                type="submit"
+                id="analyzeButton"
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg shadow-blue-200 transform transition active:scale-[0.99] flex items-center justify-center gap-2"
+              >
+                <svg
+                  class="w-5 h-5 animate-pulse"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                  ></path></svg
+                ><span>Execute Prediction Model</span>
+              </button>
+            </div>
+          </form>
+          <div id="resultsArea" class="mt-8 hidden">
+            <div class="flex items-center gap-2 mb-4">
+              <h3 class="text-lg font-bold text-slate-800">Analysis Output</h3>
+              <span
+                class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded uppercase"
+                >Completed</span
+              >
+            </div>
+            <div id="resultsContainer" class="grid grid-cols-1 gap-4"></div>
+          </div>
+          <div id="messageBox" class="hidden"></div>
+        </div>
+      </main>
+      <div
+        id="loadingOverlay"
+        class="absolute inset-0 bg-slate-900/80 z-50 flex flex-col items-center justify-center hidden backdrop-blur-sm"
+      >
+        <div class="relative">
+          <div
+            class="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"
+          ></div>
+        </div>
+        <p class="mt-4 text-blue-400 font-mono text-sm animate-pulse">
+          Processing
+        </p>
+      </div>
+    </div>
+
+    <div
+      id="docsView"
+      class="view-section flex-1 overflow-hidden hidden fade-in flex flex-col md:flex-row"
+    >
+      <aside
+        class="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 hidden md:block overflow-y-auto"
+      >
+        <h3
+          class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-6"
+        >
+          Guides
+        </h3>
+        <ul class="space-y-1 text-sm font-medium text-slate-400">
+          <li
+            onclick="docs.show('intro')"
+            id="doc-btn-intro"
+            class="doc-nav-item py-2 px-3 rounded cursor-pointer text-white bg-slate-800"
+          >
+            Introduction
+          </li>
+          <li
+            onclick="docs.show('auth')"
+            id="doc-btn-auth"
+            class="doc-nav-item py-2 px-3 rounded cursor-pointer hover:text-white hover:bg-slate-800/50 transition"
+          >
+            Authentication
+          </li>
+          <li
+            onclick="docs.show('limits')"
+            id="doc-btn-limits"
+            class="doc-nav-item py-2 px-3 rounded cursor-pointer hover:text-white hover:bg-slate-800/50 transition"
+          >
+            Rate Limits
+          </li>
+        </ul>
+        <h3
+          class="text-xs font-bold text-blue-400 uppercase tracking-wider mt-8 mb-6"
+        >
+          Reference
+        </h3>
+        <ul class="space-y-1 text-sm font-medium text-slate-400">
+          <li
+            onclick="docs.show('post-diagnose')"
+            id="doc-btn-post-diagnose"
+            class="doc-nav-item py-2 px-3 rounded cursor-pointer hover:text-white hover:bg-slate-800/50 transition"
+          >
+            POST /diagnose
+          </li>
+          <li
+            onclick="docs.show('get-history')"
+            id="doc-btn-get-history"
+            class="doc-nav-item py-2 px-3 rounded cursor-pointer hover:text-white hover:bg-slate-800/50 transition"
+          >
+            GET /history
+          </li>
+          <li
+            onclick="docs.show('errors')"
+            id="doc-btn-errors"
+            class="doc-nav-item py-2 px-3 rounded cursor-pointer hover:text-white hover:bg-slate-800/50 transition"
+          >
+            Error Codes
+          </li>
+        </ul>
+      </aside>
+
+      <main class="flex-1 bg-slate-50 overflow-y-auto p-6 md:p-12">
+        <div class="max-w-3xl mx-auto" id="docsContent"></div>
+      </main>
+    </div>
+
+    <div
+      id="authModal"
+      class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[60] hidden"
+    >
+      <div class="absolute inset-0" id="authModalBackdrop"></div>
+      <div
+        class="relative bg-[#0B1120] text-slate-200 w-full max-w-md mx-4 rounded-2xl border border-slate-700 shadow-2xl p-8 space-y-6"
+      >
+        <button
+          id="closeAuthModal"
+          class="absolute top-4 right-4 text-slate-500 hover:text-white transition"
+        >
+          ✕
+        </button>
+        <div>
+          <p class="text-xs uppercase tracking-[0.3em] text-slate-500 mb-2">
+            Secure Access
+          </p>
+          <h3 class="text-2xl font-bold text-white" id="authModalTitle">
+            Sign in to MediPredict
+          </h3>
+          <p class="text-xs text-slate-500 mt-1">
+            Use email/password or start a guest session. OAuth is disabled in
+            this environment.
+          </p>
+        </div>
+        <form id="authForm" class="space-y-4">
+          <div>
+            <label class="text-xs font-semibold text-slate-400 mb-1 block"
+              >Email</label
+            >
+            <input
+              type="email"
+              id="authEmail"
+              required
+              placeholder="clinician@hospital.org"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg text-sm p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-400 mb-1 block"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="authPassword"
+              required
+              placeholder="••••••••"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg text-sm p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          <div id="confirmPasswordGroup" class="hidden">
+            <label class="text-xs font-semibold text-slate-400 mb-1 block"
+              >Confirm Password</label
+            >
+            <input
+              type="password"
+              id="authPasswordConfirm"
+              placeholder="Confirm password"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg text-sm p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            id="authSubmitButton"
+            class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg shadow-lg shadow-blue-500/30 transition"
+          >
+            Continue
+          </button>
+          <button
+            type="button"
+            id="guestLoginButton"
+            class="w-full bg-transparent border border-slate-600 text-slate-300 hover:text-white py-3 rounded-lg transition"
+          >
+            Continue as Guest (Anonymous)
+          </button>
+        </form>
+        <div class="text-center">
+          <p class="text-xs text-slate-500">
+            <span id="authTogglePrompt">New to MediPredict?</span>
+            <button
+              id="authModeToggle"
+              class="text-blue-400 hover:text-blue-300 font-semibold ml-1"
+            >
+              Create an account
+            </button>
+          </p>
+        </div>
+        <p
+          id="authFeedback"
+          class="text-xs text-rose-400 font-semibold h-4 text-center"
+        ></p>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+      import {
+        getAnalytics,
+        logEvent,
+      } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        signInAnonymously,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        serverTimestamp,
+        query,
+        onSnapshot,
+        orderBy,
+        limit,
+      } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+      let app = null;
+      let analytics = null;
+      let auth = null;
+      let db = null;
+      let userId = null;
+      let historyUnsub = null;
+
+      async function bootstrap() {
+        try {
+          const response = await fetch("/api/config");
+          if (!response.ok) {
+            throw new Error("Unable to load remote configuration.");
+          }
+          const { firebaseConfig } = await response.json();
+          app = initializeApp(firebaseConfig);
+          analytics = getAnalytics(app);
+          logEvent(analytics, "app_init");
+          auth = getAuth(app);
+          db = getFirestore(app);
+          initFirebase();
+        } catch (error) {
+          console.error(error);
+          if (window.ui?.msg) {
+            window.ui.msg("Configuration failed to load.", "error");
+          } else {
+            alert("Configuration failed to load.");
+          }
+        }
+      }
+
+      // --- DOCS CONTENT DATA ---
+      const docSections = {
+        intro: `
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-4">API Reference</h2>
+            <p class="text-slate-600 leading-relaxed mb-6">
+                The MediPredict API allows enterprise health systems to programmatically access our AI risk assessment models. All requests must be performed over HTTPS.
+            </p>
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-700 rounded-r mb-6">
+                <strong>Note:</strong> This is a beta environment.
+            </div>
+          `,
+        auth: `
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-4">Authentication</h2>
+            <p class="text-slate-600 mb-4">Authenticate your requests using the <code class="bg-slate-200 text-slate-800 px-1 py-0.5 rounded text-xs">x-api-key</code> header. You can generate keys in your dashboard.</p>
+            <div class="code-block">
+<span class="comment"># cURL Example</span>
+curl https://api.medipredict.io/v2/diagnose \\
+  -H <span class="string">"x-api-key: YOUR_API_KEY"</span> \\
+  -H <span class="string">"Content-Type: application/json"</span>
+            </div>
+            <p class="text-slate-600">Keep your API keys secure. Do not share them in client-side code.</p>
+          `,
+        limits: `
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-4">Rate Limits</h2>
+            <p class="text-slate-600 mb-6">The API implements rate limiting to ensure stability for all users.</p>
+            <table class="w-full text-sm text-left text-slate-500 border border-slate-200 rounded-lg overflow-hidden">
+                <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                    <tr><th class="px-6 py-3">Plan</th><th class="px-6 py-3">Requests / Minute</th><th class="px-6 py-3">Burst</th></tr>
+                </thead>
+                <tbody>
+                    <tr class="bg-white border-b"><td class="px-6 py-4 font-medium text-slate-900">Free / Sandbox</td><td class="px-6 py-4">60</td><td class="px-6 py-4">10</td></tr>
+                    <tr class="bg-white border-b"><td class="px-6 py-4 font-medium text-slate-900">Enterprise</td><td class="px-6 py-4">10,000</td><td class="px-6 py-4">500</td></tr>
+                </tbody>
+            </table>
+          `,
+        "post-diagnose": `
+            <div class="flex items-center gap-3 mb-4">
+                <span class="endpoint-badge badge-post">POST</span>
+                <h2 class="text-2xl font-extrabold text-slate-900">/v2/diagnose</h2>
+            </div>
+            <p class="text-slate-600 mb-6">Generates a risk assessment based on provided vitals and optional imagery.</p>
+            
+            <h4 class="text-sm font-bold text-slate-700 mb-2">Request Body</h4>
+            <div class="code-block">
+{
+  <span class="key">"patient_id"</span>: <span class="string">"PT-8922"</span>,
+  <span class="key">"demographics"</span>: { <span class="key">"age"</span>: <span class="number">45</span>, <span class="key">"sex"</span>: <span class="string">"male"</span> },
+  <span class="key">"vitals"</span>: { <span class="key">"glucose"</span>: <span class="number">110</span>, <span class="key">"bmi"</span>: <span class="number">24.5</span> }
+}
+            </div>
+            
+            <h4 class="text-sm font-bold text-slate-700 mb-2 mt-6">Response (200 OK)</h4>
+            <div class="code-block">
+{
+  <span class="key">"request_id"</span>: <span class="string">"req_abc123"</span>,
+  <span class="key">"predictions"</span>: [
+    { <span class="key">"disease"</span>: <span class="string">"Diabetes"</span>, <span class="key">"risk"</span>: <span class="string">"High (82%)"</span> }
+  ]
+}
+            </div>
+          `,
+        "get-history": `
+            <div class="flex items-center gap-3 mb-4">
+                <span class="endpoint-badge badge-get">GET</span>
+                <h2 class="text-2xl font-extrabold text-slate-900">/v2/history</h2>
+            </div>
+            <p class="text-slate-600 mb-6">Retrieve past analysis results for a specific patient.</p>
+            <h4 class="text-sm font-bold text-slate-700 mb-2">Query Parameters</h4>
+            <ul class="list-disc list-inside text-sm text-slate-600 mb-6">
+                <li><code class="bg-slate-100 px-1 rounded">patient_id</code> (required)</li>
+                <li><code class="bg-slate-100 px-1 rounded">limit</code> (default: 10)</li>
+            </ul>
+          `,
+        errors: `
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-4">Error Codes</h2>
+            <p class="text-slate-600 mb-6">Standard HTTP status codes are used.</p>
+            <div class="space-y-4">
+                <div class="p-4 bg-white border border-slate-200 rounded shadow-sm">
+                    <span class="text-red-600 font-bold font-mono">400 Bad Request</span>
+                    <p class="text-sm text-slate-500 mt-1">Missing required fields or invalid JSON format.</p>
+                </div>
+                <div class="p-4 bg-white border border-slate-200 rounded shadow-sm">
+                    <span class="text-red-600 font-bold font-mono">401 Unauthorized</span>
+                    <p class="text-sm text-slate-500 mt-1">Invalid or missing API Key.</p>
+                </div>
+                <div class="p-4 bg-white border border-slate-200 rounded shadow-sm">
+                    <span class="text-red-600 font-bold font-mono">429 Too Many Requests</span>
+                    <p class="text-sm text-slate-500 mt-1">You have exceeded your plan's rate limit.</p>
+                </div>
+            </div>
+          `,
+      };
+
+      const authModal = document.getElementById("authModal");
+      const authForm = document.getElementById("authForm");
+      const authEmailInput = document.getElementById("authEmail");
+      const authPasswordInput = document.getElementById("authPassword");
+      const authPasswordConfirmInput = document.getElementById(
+        "authPasswordConfirm"
+      );
+      const authSubmitButton = document.getElementById("authSubmitButton");
+      const authModeToggle = document.getElementById("authModeToggle");
+      const authTogglePrompt = document.getElementById("authTogglePrompt");
+      const authModalTitle = document.getElementById("authModalTitle");
+      const authFeedback = document.getElementById("authFeedback");
+      const confirmPasswordGroup = document.getElementById(
+        "confirmPasswordGroup"
+      );
+      const openAuthModalButton = document.getElementById("openAuthModal");
+      const closeAuthModalButton = document.getElementById("closeAuthModal");
+      const signOutButton = document.getElementById("signOutButton");
+      const guestLoginButton = document.getElementById("guestLoginButton");
+      const currentUserDisplay = document.getElementById("currentUserDisplay");
+      const statusIndicator = document.getElementById("statusIndicator");
+      const userIdDisplay = document.getElementById("userIdDisplay");
+      const authModalBackdrop = document.getElementById("authModalBackdrop");
+      const historyContainer = document.getElementById("historyContainer");
+      let authMode = "signin";
+
+      // --- GLOBAL UI & DOCS LOGIC ---
+      window.docs = {
+        show: (key) => {
+          // Render Content
+          document.getElementById("docsContent").innerHTML =
+            docSections[key] || docSections["intro"];
+
+          // Update Sidebar Styles
+          document.querySelectorAll(".doc-nav-item").forEach((el) => {
+            el.classList.remove("bg-slate-800", "text-white");
+            el.classList.add(
+              "text-slate-400",
+              "hover:text-white",
+              "hover:bg-slate-800/50"
+            );
+          });
+          const activeBtn = document.getElementById(`doc-btn-${key}`);
+          if (activeBtn) {
+            activeBtn.classList.remove(
+              "text-slate-400",
+              "hover:text-white",
+              "hover:bg-slate-800/50"
+            );
+            activeBtn.classList.add("bg-slate-800", "text-white");
+          }
+        },
+      };
+
+      // Initialize Docs
+      window.docs.show("intro");
+
+      window.ui = {
+        loading: (show) => {
+          document
+            .getElementById("loadingOverlay")
+            .classList.toggle("hidden", !show);
+          document.getElementById("analyzeButton").disabled = show;
+          if (show)
+            document
+              .getElementById("analyzeButton")
+              .classList.add("opacity-50", "cursor-not-allowed");
+          else
+            document
+              .getElementById("analyzeButton")
+              .classList.remove("opacity-50", "cursor-not-allowed");
+        },
+        toggleView: (viewName) => {
+          document
+            .querySelectorAll(".view-section")
+            .forEach((el) => el.classList.add("hidden"));
+          const navs = ["overview", "simulator", "docs"];
+          navs.forEach((n) => {
+            const btn = document.getElementById(`nav-${n}`);
+            if (btn) {
+              btn.classList.remove(
+                "bg-slate-800",
+                "border",
+                "border-slate-700",
+                "text-white"
+              );
+              btn.classList.add("text-slate-400", "hover:text-white");
+            }
+          });
+          if (viewName === "overview") {
+            document.getElementById("landingView").classList.remove("hidden");
+            const btn = document.getElementById("nav-overview");
+            btn.classList.remove("text-slate-400");
+            btn.classList.add(
+              "bg-slate-800",
+              "border",
+              "border-slate-700",
+              "text-white"
+            );
+          } else if (viewName === "simulator") {
+            document.getElementById("simulatorView").classList.remove("hidden");
+            const btn = document.getElementById("nav-simulator");
+            btn.classList.remove("text-slate-400");
+            btn.classList.add(
+              "bg-slate-800",
+              "border",
+              "border-slate-700",
+              "text-white"
+            );
+          } else if (viewName === "docs") {
+            document.getElementById("docsView").classList.remove("hidden");
+            const btn = document.getElementById("nav-docs");
+            btn.classList.remove("text-slate-400");
+            btn.classList.add(
+              "bg-slate-800",
+              "border",
+              "border-slate-700",
+              "text-white"
+            );
+          }
+        },
+        msg: (text, type) => {
+          const box = document.getElementById("messageBox");
+          box.textContent = text;
+          box.className = `mt-4 p-4 text-sm rounded border-l-4 ${
+            type === "error"
+              ? "bg-red-50 border-red-500 text-red-700"
+              : "bg-blue-50 border-blue-500 text-blue-700"
+          }`;
+          box.classList.remove("hidden");
+          setTimeout(() => box.classList.add("hidden"), 5000);
+        },
+        fileUpdate: () => {
+          const file = document.getElementById("reportFile").files[0];
+          document.getElementById("fileNameDisplay").textContent = file
+            ? `> ${file.name}`
+            : "";
+        },
+        toggleAuthModal: (show) => {
+          authModal.classList.toggle("hidden", !show);
+          if (show) {
+            authFeedback.textContent = "";
+            authForm.reset();
+            if (authMode === "signup") {
+              authPasswordConfirmInput.value = "";
+            }
+          }
+        },
+        setAuthMode: (mode) => {
+          authMode = mode;
+          const isSignUp = mode === "signup";
+          authModalTitle.textContent = isSignUp
+            ? "Create your MediPredict account"
+            : "Sign in to MediPredict";
+          authSubmitButton.textContent = isSignUp
+            ? "Create Account"
+            : "Sign In";
+          authModeToggle.textContent = isSignUp
+            ? "Use existing account"
+            : "Create an account";
+          authTogglePrompt.textContent = isSignUp
+            ? "Already verified?"
+            : "New to MediPredict?";
+          confirmPasswordGroup.classList.toggle("hidden", !isSignUp);
+          authFeedback.textContent = "";
+        },
+        updateAuthState: (user) => {
+          if (user) {
+            userId = user.uid;
+            const email = user.email || "guest";
+            currentUserDisplay.textContent = `@${email}`;
+            currentUserDisplay.classList.remove("hidden");
+            openAuthModalButton.classList.add("hidden");
+            signOutButton.classList.remove("hidden");
+            statusIndicator.classList.replace("bg-red-500", "bg-emerald-500");
+            statusIndicator.classList.replace(
+              "shadow-[0_0_8px_rgba(239,68,68,0.6)]",
+              "shadow-[0_0_8px_rgba(16,185,129,0.6)]"
+            );
+            userIdDisplay.textContent = `Connected: ${email}`;
+            subscribeToHistory(user.uid);
+          } else {
+            userId = null;
+            currentUserDisplay.classList.add("hidden");
+            openAuthModalButton.classList.remove("hidden");
+            signOutButton.classList.add("hidden");
+            statusIndicator.classList.replace("bg-emerald-500", "bg-red-500");
+            statusIndicator.classList.replace(
+              "shadow-[0_0_8px_rgba(16,185,129,0.6)]",
+              "shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+            );
+            userIdDisplay.textContent = "Not authenticated";
+            subscribeToHistory(null);
+          }
+        },
+      };
+
+      function setAuthButtonState(isLoading) {
+        authSubmitButton.disabled = isLoading;
+        authSubmitButton.textContent = isLoading
+          ? "Processing..."
+          : authMode === "signup"
+          ? "Create Account"
+          : "Sign In";
+      }
+
+      function setGuestButtonState(isLoading) {
+        guestLoginButton.disabled = isLoading;
+        guestLoginButton.textContent = isLoading
+          ? "Connecting..."
+          : "Continue as Guest (Anonymous)";
+      }
+
+      function formatFirebaseError(error) {
+        if (!error?.message) return "Unexpected authentication error.";
+        return error.message.replace("Firebase:", "").trim();
+      }
+
+      function subscribeToHistory(uid) {
+        if (historyUnsub) {
+          historyUnsub();
+          historyUnsub = null;
+        }
+        if (!uid) {
+          historyContainer.innerHTML =
+            '<p class="text-slate-500 text-xs">// Authenticate to stream events.</p>';
+          return;
+        }
+        const historyRef = collection(db, `users/${uid}/analysisHistory`);
+        const q = query(historyRef, orderBy("timestamp", "desc"), limit(10));
+        historyUnsub = onSnapshot(
+          q,
+          (snapshot) => {
+            if (snapshot.empty) {
+              historyContainer.innerHTML =
+                '<p class="text-slate-500 text-xs">// Awaiting first submission.</p>';
+              return;
+            }
+            let html =
+              '<p class="text-blue-400 font-bold mb-2">// SERVER READY</p>';
+            snapshot.forEach((docSnapshot) => {
+              const data = docSnapshot.data();
+              const results = JSON.parse(data.analysisResults || "[]");
+              const topDisease = results.length
+                ? results[0].diseaseName
+                : "Uncertain";
+              const timestamp = data.timestamp?.seconds
+                ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString(
+                    [],
+                    { hour: "2-digit", minute: "2-digit" }
+                  )
+                : "--:--";
+              html += `<div class="mt-2 border-b border-slate-800 pb-2 hover:bg-slate-900 p-1 rounded transition"><div class="flex justify-between text-slate-500"><span>[${timestamp}] ${
+                data.patientId || "Unknown"
+              }</span><span class="text-[9px] border border-slate-700 px-1 rounded text-slate-400">${
+                data.reportType || "Text Only"
+              }</span></div><div class="text-emerald-400 mt-0.5">>> ${topDisease}</div></div>`;
+            });
+            historyContainer.innerHTML = html;
+          },
+          (error) => {
+            historyContainer.innerHTML = `<p class="text-rose-400 text-xs">${formatFirebaseError(
+              error
+            )}</p>`;
+          }
+        );
+      }
+
+      function initFirebase() {
+        if (!auth) {
+          console.warn("Firebase not ready yet.");
+          return;
+        }
+        ui.setAuthMode("signin");
+        subscribeToHistory(null);
+        onAuthStateChanged(auth, (user) => ui.updateAuthState(user));
+      }
+
+      initFirebase();
+
+      openAuthModalButton.addEventListener("click", () =>
+        ui.toggleAuthModal(true)
+      );
+      closeAuthModalButton.addEventListener("click", () =>
+        ui.toggleAuthModal(false)
+      );
+      authModalBackdrop.addEventListener("click", () =>
+        ui.toggleAuthModal(false)
+      );
+      authModeToggle.addEventListener("click", () => {
+        const nextMode = authMode === "signin" ? "signup" : "signin";
+        ui.setAuthMode(nextMode);
+      });
+
+      authForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        authFeedback.textContent = "";
+        if (!auth) {
+          authFeedback.textContent = "Initializing services. Please wait...";
+          return;
+        }
+        const email = authEmailInput.value.trim();
+        const password = authPasswordInput.value;
+        if (authMode === "signup") {
+          if (!authPasswordConfirmInput.value.trim()) {
+            authFeedback.textContent = "Please confirm your password.";
+            return;
+          }
+          if (password !== authPasswordConfirmInput.value) {
+            authFeedback.textContent = "Passwords do not match.";
+            return;
+          }
+        }
+        setAuthButtonState(true);
+        try {
+          if (authMode === "signup") {
+            await createUserWithEmailAndPassword(auth, email, password);
+            ui.msg("Account created successfully.", "success");
+          } else {
+            await signInWithEmailAndPassword(auth, email, password);
+            ui.msg("Signed in successfully.", "success");
+          }
+          ui.toggleAuthModal(false);
+        } catch (error) {
+          authFeedback.textContent = formatFirebaseError(error);
+        } finally {
+          setAuthButtonState(false);
+        }
+      });
+
+      guestLoginButton.addEventListener("click", async () => {
+        authFeedback.textContent = "";
+        if (!auth) {
+          authFeedback.textContent = "Initializing services. Please wait...";
+          return;
+        }
+        setGuestButtonState(true);
+        try {
+          await signInAnonymously(auth);
+          ui.msg("Guest session started.", "success");
+          ui.toggleAuthModal(false);
+        } catch (error) {
+          authFeedback.textContent = formatFirebaseError(error);
+        } finally {
+          setGuestButtonState(false);
+        }
+      });
+
+      signOutButton.addEventListener("click", async () => {
+        if (!auth) {
+          ui.msg("Initialization in progress.", "error");
+          return;
+        }
+        try {
+          await signOut(auth);
+          ui.msg("Signed out.", "success");
+        } catch (error) {
+          ui.msg(formatFirebaseError(error), "error");
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !authModal.classList.contains("hidden")) {
+          ui.toggleAuthModal(false);
+        }
+      });
+
+      document
+        .getElementById("reportFile")
+        .addEventListener("change", ui.fileUpdate);
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result.split(",")[1]);
+          reader.onerror = (error) => reject(error);
+        });
+      }
+
+      document
+        .getElementById("reportForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (!userId) {
+            ui.msg(
+              "Please sign in or start a guest session before running predictions.",
+              "error"
+            );
+            return;
+          }
+          ui.loading(true);
+          document.getElementById("resultsArea").classList.add("hidden");
+          const pId = document.getElementById("patientId").value;
+          const contextString = `Patient ID: ${pId}, Age: ${
+            document.getElementById("patientAge").value
+          }, Sex: ${
+            document.getElementById("patientSex").value
+          }, Vitals: Glucose: ${
+            document.getElementById("glucose").value
+          }, BP: ${document.getElementById("bp").value}, BMI: ${
+            document.getElementById("bmi").value
+          }, Notes: ${document.getElementById("clinicalNotes").value}`.trim();
+          try {
+            const file = document.getElementById("reportFile").files[0];
+            let imageData = null,
+              mimeType = null;
+            if (file) {
+              imageData = await fileToBase64(file);
+              mimeType = file.type;
+            }
+            const response = await fetch("/api/predict", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contextString,
+                fileData: imageData ? { mimeType, data: imageData } : null,
+              }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+              throw new Error(data?.error || "Prediction Model Failed");
+            }
+            const predictions = data.predictions || [];
+            document.getElementById("resultsContainer").innerHTML = predictions
+              .map((p) => {
+                const isHigh =
+                  p.likelihood.toLowerCase().includes("high") ||
+                  parseInt(p.likelihood.match(/\d+/)) > 60;
+                return `<div class="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition ${
+                  isHigh
+                    ? "border-l-4 border-l-red-500"
+                    : "border-l-4 border-l-yellow-400"
+                }"><div class="flex justify-between items-start"><h4 class="text-md font-bold text-slate-800">${
+                  p.diseaseName
+                }</h4><span class="px-2 py-0.5 text-xs font-bold rounded uppercase ${
+                  isHigh
+                    ? "bg-red-50 text-red-600"
+                    : "bg-yellow-50 text-yellow-600"
+                }">${
+                  p.likelihood
+                }</span></div><p class="text-slate-600 mt-1 text-sm leading-relaxed">${
+                  p.rationale
+                }</p></div>`;
+              })
+              .join("");
+            document.getElementById("resultsArea").classList.remove("hidden");
+            const historyRef = collection(
+              db,
+              `users/${userId}/analysisHistory`
+            );
+            await addDoc(historyRef, {
+              patientId: pId,
+              reportContext: contextString,
+              reportType: file ? "Multimodal" : "Text Only",
+              analysisResults: JSON.stringify(predictions),
+              timestamp: serverTimestamp(),
+            });
+            ui.msg("Analysis complete.", "success");
+          } catch (error) {
+            console.error(error);
+            ui.msg("Error processing request.", "error");
+          } finally {
+            ui.loading(false);
+          }
+        });
+      bootstrap();
+    </script>
+  </body>
+</html>
